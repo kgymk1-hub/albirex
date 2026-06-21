@@ -115,21 +115,34 @@ def build_mobile_rows(players: list[dict[str, str]], events: list[dict[str, str]
     rows = []
     for player in players:
         name = player.get("選手名", "")
-        event = events_by_name.get(name, {})
-        category = event.get("区分", "") or "未発表"
-        movement = event.get("動向", "") or "未発表"
-        status = event.get("ステータス", "") or "未発表"
+        event = events_by_name.get(name)
+        if event:
+            movement = event.get("動向", "") or "未発表"
+            announcement_date = event.get("発表日", "")
+            note = event.get("その他備考", "")
+            category = event.get("区分", "") or "未発表"
+            transfer_from_to = event.get("移籍先元", "")
+            status = event.get("ステータス", "") or "未発表"
+            source_url = event.get("出典URL", "")
+        else:
+            movement = "未発表"
+            announcement_date = ""
+            note = ""
+            category = "未発表"
+            transfer_from_to = ""
+            status = "未発表"
+            source_url = ""
         rows.append([
             player.get("背番号", ""),
             player.get("ポジション", ""),
             name,
             movement,
-            event.get("発表日", ""),
-            event.get("その他備考", ""),
+            announcement_date,
+            note,
             category,
-            event.get("移籍先元", ""),
+            transfer_from_to,
             status,
-            event.get("出典URL", ""),
+            source_url,
         ])
     return rows
 
@@ -153,8 +166,19 @@ def setup_mobile_sheet(ws, rows: list[list[str]]) -> None:
     ws.page_margins.footer = 0.2
     ws.row_dimensions[1].height = 26
     for row_number in range(2, max_row + 1):
-        ws.row_dimensions[row_number].height = 34
-    set_widths(ws, {"A": 7, "B": 9, "C": 18, "D": 18, "E": 12, "F": 28, "G": 18, "H": 24, "I": 16, "J": 42})
+        movement_length = len(str(ws.cell(row=row_number, column=4).value or ""))
+        note_length = len(str(ws.cell(row=row_number, column=6).value or ""))
+        longest_print_text = max(movement_length, note_length)
+        if longest_print_text >= 55:
+            row_height = 68
+        elif longest_print_text >= 35:
+            row_height = 56
+        elif longest_print_text >= 22:
+            row_height = 48
+        else:
+            row_height = 34
+        ws.row_dimensions[row_number].height = row_height
+    set_widths(ws, {"A": 7, "B": 11, "C": 17, "D": 16, "E": 12, "F": 30, "G": 18, "H": 24, "I": 16, "J": 42})
     for column in ("G", "H", "I", "J"):
         ws.column_dimensions[column].hidden = True
     for row_number in range(2, max_row + 1):

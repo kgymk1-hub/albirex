@@ -1,0 +1,2 @@
+# Generated Excel exports are binary artifacts and should not be included in PRs.
+/exports/*.xlsx

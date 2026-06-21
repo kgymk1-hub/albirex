@@ -14,6 +14,7 @@ from typing import Iterable
 from openpyxl import Workbook
 from openpyxl.formatting.rule import FormulaRule
 from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.worksheet.pagebreak import Break
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_ROOT = ROOT / "data"
@@ -75,6 +76,52 @@ def style_header(ws) -> None:
 def set_widths(ws, widths: dict[str, float]) -> None:
     for column, width in widths.items():
         ws.column_dimensions[column].width = width
+
+
+def text_width_units(value: str) -> float:
+    """Estimate wrapped-cell width using wider units for Japanese text."""
+    width = 0.0
+    for character in value:
+        if character == "\n":
+            width += 100.0
+        elif ord(character) < 128:
+            width += 0.55
+        else:
+            width += 1.0
+    return width
+
+
+def estimate_wrapped_lines(value: str, column_width: float) -> int:
+    """Estimate display lines for wrapped text in an Excel column."""
+    text = str(value or "")
+    if not text:
+        return 1
+    usable_width = max(column_width - 1.5, 1.0)
+    lines = 0
+    for paragraph in text.splitlines() or [""]:
+        lines += max(1, int((text_width_units(paragraph) + usable_width - 0.01) // usable_width))
+    return lines
+
+
+def mobile_row_height(movement: str, note: str) -> float:
+    """Return a conservative row height so wrapped D/F text is not clipped."""
+    movement_lines = estimate_wrapped_lines(movement, 16)
+    note_lines = estimate_wrapped_lines(note, 30)
+    wrapped_lines = max(movement_lines, note_lines)
+    return max(34, 18 * wrapped_lines + 14)
+
+
+def apply_mobile_page_breaks(ws, max_row: int) -> None:
+    """Keep tall wrapped rows away from the printable page bottom."""
+    printable_page_height = 660
+    current_page_height = ws.row_dimensions[1].height or 26
+    for row_number in range(2, max_row + 1):
+        row_height = ws.row_dimensions[row_number].height or 34
+        if current_page_height > 26 and current_page_height + row_height > printable_page_height:
+            ws.row_breaks.append(Break(id=row_number - 1))
+            current_page_height = (ws.row_dimensions[1].height or 26) + row_height
+        else:
+            current_page_height += row_height
 
 
 def parse_event_date(value: str) -> date | None:
@@ -166,18 +213,10 @@ def setup_mobile_sheet(ws, rows: list[list[str]]) -> None:
     ws.page_margins.footer = 0.2
     ws.row_dimensions[1].height = 26
     for row_number in range(2, max_row + 1):
-        movement_length = len(str(ws.cell(row=row_number, column=4).value or ""))
-        note_length = len(str(ws.cell(row=row_number, column=6).value or ""))
-        longest_print_text = max(movement_length, note_length)
-        if longest_print_text >= 55:
-            row_height = 68
-        elif longest_print_text >= 35:
-            row_height = 56
-        elif longest_print_text >= 22:
-            row_height = 48
-        else:
-            row_height = 34
-        ws.row_dimensions[row_number].height = row_height
+        movement = str(ws.cell(row=row_number, column=4).value or "")
+        note = str(ws.cell(row=row_number, column=6).value or "")
+        ws.row_dimensions[row_number].height = mobile_row_height(movement, note)
+    apply_mobile_page_breaks(ws, max_row)
     set_widths(ws, {"A": 7, "B": 11, "C": 17, "D": 16, "E": 12, "F": 30, "G": 18, "H": 24, "I": 16, "J": 42})
     for column in ("G", "H", "I", "J"):
         ws.column_dimensions[column].hidden = True

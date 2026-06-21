@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Build Albirex Niigata offseason workbooks from CSV source data.
+"""Build Albirex Niigata offseason workbooks from CSV source da
 
 This script is intended to run in GitHub Actions. It creates new Excel
 workbooks from CSV source data and does not read, edit, or overwrite the
-legacy reference .xlsx files in the repository root.
+legacy reference .xlsx files in the repository root
+
 """
 from __future__ import annotations
 
@@ -54,6 +55,7 @@ def read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+
 def append_table(ws, headers: list[str], rows: Iterable[Iterable[str]]) -> None:
     ws.append(headers)
     for row in rows:
@@ -76,6 +78,7 @@ def set_widths(ws, widths: dict[str, float]) -> None:
 
 
 def build_mobile_rows(players: list[dict[str, str]], events: list[dict[str, str]]) -> list[list[str]]:
+
     events_by_name = {event.get("氏名", ""): event for event in events if event.get("氏名")}
     rows = []
     for player in players:
@@ -140,6 +143,7 @@ def apply_conditional_formatting(ws, max_row: int) -> None:
 
 
 def setup_simple_sheet(ws, headers: list[str], rows: list[list[str]], widths: dict[str, float] | None = None) -> None:
+
     append_table(ws, headers, rows)
     ws.freeze_panes = "A2"
     for row in ws.iter_rows():

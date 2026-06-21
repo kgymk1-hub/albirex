@@ -30,9 +30,11 @@ CATEGORY_MASTER = [
     ("復帰", "加入系", "薄い青"),
     ("期限付き移籍加入", "加入系", "薄い青"),
     ("期限付き移籍延長", "加入系", "薄い青"),
+    ("完全移籍", "退団系", "薄い橙"),
     ("退団", "退団系", "薄い橙"),
     ("契約満了", "退団系", "薄い橙"),
     ("引退", "退団系", "薄い橙"),
+    ("レンタル中", "退団系", "薄い橙"),
     ("未発表", "未発表", "薄い黄"),
 ]
 
@@ -155,6 +157,11 @@ def setup_mobile_sheet(ws, rows: list[list[str]]) -> None:
     set_widths(ws, {"A": 7, "B": 9, "C": 18, "D": 18, "E": 12, "F": 28, "G": 18, "H": 24, "I": 16, "J": 42})
     for column in ("G", "H", "I", "J"):
         ws.column_dimensions[column].hidden = True
+    for row_number in range(2, max_row + 1):
+        url_cell = ws.cell(row=row_number, column=10)
+        if url_cell.value:
+            url_cell.hyperlink = str(url_cell.value)
+            url_cell.style = "Hyperlink"
     for row in ws.iter_rows(min_row=1, max_row=max_row, min_col=1, max_col=10):
         for cell in row:
             cell.alignment = Alignment(vertical="center", wrap_text=True)

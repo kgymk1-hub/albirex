@@ -16,24 +16,9 @@ fi
 for workbook in "${workbooks[@]}"; do
   base_name="$(basename "$workbook" .xlsx)"
   tmp_xlsx="$TMP_DIR/${base_name}.xlsx"
-  cp "$workbook" "$tmp_xlsx"
 
-  # Create a temporary workbook for PDF export that contains only the mobile sheet.
-  python - "$tmp_xlsx" <<'PY'
-from pathlib import Path
-import sys
-from openpyxl import load_workbook
-
-path = Path(sys.argv[1])
-wb = load_workbook(path)
-if "スマホ表示" not in wb.sheetnames:
-    raise SystemExit(f"スマホ表示 sheet is missing: {path}")
-for sheet_name in list(wb.sheetnames):
-    if sheet_name != "スマホ表示":
-        del wb[sheet_name]
-wb.active = 0
-wb.save(path)
-PY
+  # Create a temporary workbook that contains only the mobile sheet before PDF export.
+  python "$ROOT_DIR/scripts/prepare_pdf_workbook.py" "$workbook" "$tmp_xlsx"
 
   libreoffice --headless --convert-to pdf --outdir "$TMP_DIR" "$tmp_xlsx"
   pdf_path="$TMP_DIR/${base_name}.pdf"

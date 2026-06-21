@@ -1,6 +1,4 @@
 exports/*.xlsx
-exports/*.pdf
 *.xlsx
-*.pdf
 __pycache__/
 *.py[cod]

@@ -6,7 +6,9 @@
 - PDFファイルを正本にしない。
 - 正本は `data/men/` と `data/ladies/` のCSVとする。
 - Excel/PDFはGitHub Actionsで生成する。
-- AndroidスマホだけでCSV編集、Actions実行、Artifact取得まで運用する。
+- CSV更新はGitHub Actionsでは実行せず、利用者が1日1回Codexにプロンプトを投げ、Codexが公式サイトを確認してCSVを更新する。
+- 更新済みCSVのpushをトリガーに、GitHub ActionsでExcel/PDFを生成する。
+- AndroidスマホだけでCodexへのCSV更新依頼、CSV確認、Actions実行、Artifact取得まで運用する。
 - Codex上ではExcel/PDFを生成しない。
 - 既存xlsxは参考扱いであり、今後は正本として扱わない。
 
@@ -90,7 +92,9 @@
 
 ## GitHub Actions仕様
 
-Artifact名は `albirex-offseason-excel-and-pdf` とする。`Build Excel and PDF` ワークフローで以下を行う。
+Artifact名は `albirex-offseason-excel-and-pdf` とする。`Build Excel and PDF` ワークフローは、CSVがpushされたとき、または手動実行されたときに、更新済みCSVを元にExcelファイルとPDFファイルを生成するだけのWorkflowとする。GitHub Actions内で公式サイトを確認してCSVを更新する処理は行わない。
+
+`Build Excel and PDF` ワークフローで以下を行う。
 
 1. Pythonをセットアップする。
 2. `openpyxl` をインストールする。
@@ -104,7 +108,7 @@ PDF変換では、PDF用一時Excelを作り、スマホ表示シート以外を
 
 ## 日次公式サイト確認仕様
 
-日次更新Workflowは `Daily CSV Update` とし、毎日09:00 JST相当の `0 0 * * *`（UTC）で自動実行する。Androidスマホから手動実行できるように `workflow_dispatch` も有効にする。
+日次更新Workflowは作成しない。GitHub Actionsのschedule自動実行も使用しない。CSV更新は、利用者が1日1回Codexにプロンプトを投げ、Codexが公式サイトを確認してCSVを更新する運用とする。
 
 ### 確認対象
 
@@ -121,8 +125,8 @@ PDF変換では、PDF用一時Excelを作り、スマホ表示シート以外を
 
 ### 障害時の挙動
 
-公式サイトへアクセスできない、サイト構造が変わった、または解析できない場合でも、既存CSVを維持する。推測で新規行を追加せず、既存行を削除せず、公式確認できない値で上書きしない。ログには `公式サイト取得不可` または `解析不可` を出力する。CSVヘッダー不正やスクリプト自体の重大エラーは失敗させてよい。
+公式サイトへアクセスできない、サイト構造が変わった、または解析できない場合でも、既存CSVを維持する。推測で新規行を追加せず、既存行を削除せず、公式確認できない値で上書きしない。
 
 ### 生成物
 
-Excel/PDFは `Build Excel and PDF` ワークフローで生成する。`Daily CSV Update` はCSV更新後、CSVに変更がある場合もない場合も `Build Excel and PDF` を起動する。`.xlsx` と `.pdf` はGit管理対象外の生成物であり、正本にはしない。
+Excel/PDFは `Build Excel and PDF` ワークフローで生成する。GitHub Actionsは更新済みCSVを入力として扱い、公式サイト確認やCSV更新は行わない。`.xlsx` と `.pdf` はGit管理対象外の生成物であり、正本にはしない。

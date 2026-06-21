@@ -127,7 +127,7 @@ def build_mobile_rows(players: list[dict[str, str]], events: list[dict[str, str]
         else:
             movement = "未発表"
             announcement_date = ""
-            note = ""
+            note = player.get("その他備考", "")
             category = "未発表"
             transfer_from_to = ""
             status = "未発表"

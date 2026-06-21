@@ -1,0 +1,4 @@
+exports/*.xlsx
+*.xlsx
+__pycache__/
+*.py[cod]

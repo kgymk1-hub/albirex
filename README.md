@@ -91,3 +91,24 @@
 ## Codexでの作業ルール
 
 Codexが作成・修正するのは、CSV、Pythonスクリプト、shellスクリプト、GitHub Actions workflow、README、仕様書、`.gitignore` などのテキストファイルだけです。Codex上でExcel/PDF生成スクリプトを実行してはいけません。
+
+## 日次公式サイト確認運用
+
+`Daily CSV Update` ワークフローは、毎日09:00 JST（GitHub Actions cronでは `0 0 * * *`）にアルビレックス新潟公式サイトとアルビレックス新潟レディース公式サイトを確認します。
+
+- CSVはこのリポジトリの正本データです。
+- Excel/PDFはGitHub Actions上の `Build Excel and PDF` で生成します。
+- `Daily CSV Update` は公式サイトだけを確認し、契約更新、加入、復帰、期限付き移籍加入、期限付き移籍延長、完全移籍、退団、契約満了、引退、レンタル中などの公式発表が確認できた場合だけCSVへ反映します。
+- 非公式サイト、SNS、掲示板、まとめサイト、推測情報はCSVへ反映しません。
+- 公式サイト取得不可または解析不可の場合は既存CSVを維持し、推測で追加・削除・上書きしません。
+- CSVに変更があれば、GitHub Actions botが `Update offseason CSV from official sites` というCommit messageでCommitします。
+- CSVに変更がある場合もない場合も、最後に `Build Excel and PDF` を実行し、Excel/PDFをArtifactとして生成します。
+
+### Androidスマホから日次更新を手動実行する
+
+1. GitHubのリポジトリ画面で `Actions` タブを開く。
+2. 左側のWorkflow一覧から `Daily CSV Update` を選ぶ。
+3. `Run workflow` を押して手動実行する。
+4. 実行後、必要に応じて `Build Excel and PDF` のRunを開く。
+5. `Artifacts` の `albirex-offseason-excel-and-pdf` をダウンロードする。
+6. Artifactはzip形式なので、Androidスマホでzipを展開してからExcelまたはPDFを開く。

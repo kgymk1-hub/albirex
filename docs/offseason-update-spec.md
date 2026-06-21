@@ -108,7 +108,9 @@ PDF変換では、PDF用一時Excelを作り、スマホ表示シート以外を
 
 ## 日次公式サイト確認仕様
 
-日次更新Workflowは作成しない。GitHub Actionsのschedule自動実行も使用しない。CSV更新は、利用者が1日1回Codexにプロンプトを投げ、Codexが公式サイトを確認してCSVを更新する運用とする。
+日次更新Workflowは作成しない。schedule付きの `Daily CSV Update` workflowも作成しない。GitHub Actionsによる日次自動CSV更新は行わない。CSV更新はCodexへの日次プロンプトで行う。利用者が1日1回Codexにプロンプトを投げ、Codexが公式サイトを確認してCSVを更新する運用とする。更新済みCSVをpushすると、`Build Excel and PDF` が実行され、Excel/PDFをArtifactとして出力する。
+
+`scripts/update_official_csv.py`、`scripts/official_sources.py`、`scripts/csv_utils.py` は将来の自動化検討用または補助スクリプトであり、現時点の正式運用ではGitHub Actionsから実行しない。
 
 ### 確認対象
 

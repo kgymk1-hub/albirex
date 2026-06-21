@@ -15,9 +15,10 @@ fi
 
 for workbook in "${workbooks[@]}"; do
   base_name="$(basename "$workbook" .xlsx)"
-  tmp_xlsx="$TMP_DIR/${base_name}_mobile_only.xlsx"
+  tmp_xlsx="$TMP_DIR/${base_name}.xlsx"
   cp "$workbook" "$tmp_xlsx"
 
+  # Create a temporary workbook for PDF export that contains only the mobile sheet.
   python - "$tmp_xlsx" <<'PY'
 from pathlib import Path
 import sys
@@ -35,7 +36,7 @@ wb.save(path)
 PY
 
   libreoffice --headless --convert-to pdf --outdir "$TMP_DIR" "$tmp_xlsx"
-  pdf_path="$TMP_DIR/${base_name}_mobile_only.pdf"
+  pdf_path="$TMP_DIR/${base_name}.pdf"
   if [[ ! -f "$pdf_path" ]]; then
     echo "PDF conversion failed for $workbook" >&2
     exit 1

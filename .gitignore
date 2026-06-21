@@ -1,3 +1,5 @@
+*.pdf
+exports/*.pdf
 exports/*.xlsx
 *.xlsx
 __pycache__/

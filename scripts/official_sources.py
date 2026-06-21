@@ -190,6 +190,8 @@ def _normalize_event_category(event_type: str, title: str, article_text: str) ->
         if "完全移籍加入" in text or "移籍加入" in text or "より完全移籍" in text or "から完全移籍" in text:
             return "移籍in"
         return "移籍out"
+    if event_type == "加入":
+        return "移籍in"
     return event_type
 
 
@@ -221,7 +223,7 @@ def _build_event(title: str, article_text: str, category: str, url: str, known_n
     announced_on = _extract_date(article_text) or _extract_date(url)
     movement = category
     club = _extract_transfer_club(title, player_name, category)
-    if category in {"契約更新", "加入", "復帰", "移籍in", "期限付移籍in", "期限付移籍in延長"}:
+    if category in {"契約更新", "復帰", "移籍in", "期限付移籍in", "期限付移籍in延長"}:
         status = "在籍予定"
     elif category in {"期限付移籍out", "期限付移籍out延長"}:
         status = "期限付き移籍中"

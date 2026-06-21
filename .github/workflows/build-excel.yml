@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'data/**'
-      - 'scripts/**'
+      - 'data/**/*.csv'
       - '.github/workflows/build-excel.yml'
 
 jobs:

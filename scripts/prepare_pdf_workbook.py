@@ -15,6 +15,16 @@ from openpyxl import load_workbook
 MOBILE_SHEET_NAME = "スマホ表示"
 
 
+def last_data_row(ws, min_col: int = 1, max_col: int = 6) -> int:
+    """Return the last row containing actual print data in the target columns."""
+    for row_number in range(ws.max_row, 0, -1):
+        for column_number in range(min_col, max_col + 1):
+            value = ws.cell(row=row_number, column=column_number).value
+            if value is not None and str(value).strip():
+                return row_number
+    return 1
+
+
 def prepare_pdf_workbook(input_path: Path, output_path: Path) -> None:
     wb = load_workbook(input_path)
     if MOBILE_SHEET_NAME not in wb.sheetnames:
@@ -26,7 +36,7 @@ def prepare_pdf_workbook(input_path: Path, output_path: Path) -> None:
 
     ws = wb[MOBILE_SHEET_NAME]
     wb.active = wb.sheetnames.index(MOBILE_SHEET_NAME)
-    ws.print_area = f"A1:F{max(ws.max_row, 1)}"
+    ws.print_area = f"A1:F{last_data_row(ws)}"
     ws.print_title_rows = "1:1"
     ws.sheet_view.showGridLines = False
     output_path.parent.mkdir(parents=True, exist_ok=True)

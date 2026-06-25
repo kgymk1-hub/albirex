@@ -112,17 +112,46 @@ def mobile_row_height(movement: str, note: str) -> float:
     return max(34, 18 * wrapped_lines + 14)
 
 
-def apply_mobile_page_breaks(ws, max_row: int) -> None:
-    """Keep tall wrapped rows away from the printable page bottom."""
-    printable_page_height = 660
-    current_page_height = ws.row_dimensions[1].height or 26
+def last_data_row(ws, min_col: int = 1, max_col: int = 6) -> int:
+    """Return the last row containing actual print data in the target columns."""
+    for row_number in range(ws.max_row, 0, -1):
+        for column_number in range(min_col, max_col + 1):
+            value = ws.cell(row=row_number, column=column_number).value
+            if value is not None and str(value).strip():
+                return row_number
+    return 1
+
+
+def apply_mobile_page_breaks(ws, max_row: int, min_tail_rows: int = 3) -> None:
+    """Keep tall wrapped rows away from the printable page bottom.
+
+    LibreOffice PDF export can be unstable when the final page contains only
+    one data row. Prefer an earlier page break so the final PDF page carries a
+    small block of rows instead of a single trailing player.
+    """
+    printable_page_height = 630
+    header_height = ws.row_dimensions[1].height or 26
+    current_page_height = header_height
+    break_ids: list[int] = []
     for row_number in range(2, max_row + 1):
         row_height = ws.row_dimensions[row_number].height or 34
-        if current_page_height > 26 and current_page_height + row_height > printable_page_height:
-            ws.row_breaks.append(Break(id=row_number - 1))
-            current_page_height = (ws.row_dimensions[1].height or 26) + row_height
+        if current_page_height > header_height and current_page_height + row_height > printable_page_height:
+            break_ids.append(row_number - 1)
+            current_page_height = header_height + row_height
         else:
             current_page_height += row_height
+
+    if break_ids:
+        tail_rows = max_row - break_ids[-1]
+        if 0 < tail_rows < min_tail_rows:
+            previous_break = break_ids[-2] if len(break_ids) > 1 else 1
+            adjusted_break = max(previous_break + 1, max_row - min_tail_rows)
+            if adjusted_break < break_ids[-1]:
+                break_ids[-1] = adjusted_break
+
+    for break_id in break_ids:
+        if 1 <= break_id < max_row:
+            ws.row_breaks.append(Break(id=break_id))
 
 
 def parse_event_date(value: str) -> date | None:
@@ -197,7 +226,7 @@ def build_mobile_rows(players: list[dict[str, str]], events: list[dict[str, str]
 
 def setup_mobile_sheet(ws, rows: list[list[str]]) -> None:
     append_table(ws, MOBILE_HEADERS, rows)
-    max_row = max(ws.max_row, 1)
+    max_row = last_data_row(ws)
     ws.freeze_panes = "A2"
     ws.print_title_rows = "1:1"
     ws.print_area = f"A1:F{max_row}"

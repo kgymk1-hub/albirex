@@ -30,6 +30,15 @@ TEAMS = {
 }
 
 
+def sort_player_rows(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    def sort_key(item: tuple[int, dict[str, str]]) -> tuple[int, int]:
+        original_index, row = item
+        number = row.get("背番号", "")
+        return (0, int(number)) if number.isdigit() else (1, original_index)
+
+    return [row for _, row in sorted(enumerate(rows), key=sort_key)]
+
+
 def update_players(path: Path, team: str) -> tuple[list[dict[str, str]], bool]:
     rows = read_csv_dicts(path, PLAYERS_HEADER)
     by_name = {row["選手名"]: row for row in rows}
@@ -58,7 +67,8 @@ def update_players(path: Path, team: str) -> tuple[list[dict[str, str]], bool]:
             })
             changed = True
 
-    return rows, changed and write_csv_dicts_if_changed(path, PLAYERS_HEADER, rows)
+    sorted_rows = sort_player_rows(rows)
+    return sorted_rows, write_csv_dicts_if_changed(path, PLAYERS_HEADER, sorted_rows) if changed or sorted_rows != rows else False
 
 
 def update_events(path: Path, team: str, player_rows: list[dict[str, str]]) -> bool:

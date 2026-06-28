@@ -190,6 +190,8 @@ def _normalize_event_category(event_type: str, title: str, article_text: str) ->
         if "完全移籍加入" in text or "移籍加入" in text or "より完全移籍" in text or "から完全移籍" in text:
             return "移籍in"
         return "移籍out"
+    if event_type == "復帰":
+        return "期限付移籍out終了"
     if event_type == "加入":
         return "移籍in"
     return event_type
@@ -210,8 +212,8 @@ def _club_note(category: str, club: str) -> str:
         return f"{club}からの期限付き移籍期間を延長"
     if category == "期限付移籍out延長":
         return f"{club}への期限付き移籍期間を延長"
-    if category == "復帰":
-        return f"{club}から復帰"
+    if category == "期限付移籍out終了":
+        return f"{club}への期限付き移籍より復帰" if club else "期限付き移籍out終了"
     return "公式サイト確認"
 
 
@@ -223,7 +225,7 @@ def _build_event(title: str, article_text: str, category: str, url: str, known_n
     announced_on = _extract_date(article_text) or _extract_date(url)
     movement = category
     club = _extract_transfer_club(title, player_name, category)
-    if category in {"契約更新", "復帰", "移籍in", "期限付移籍in", "期限付移籍in延長"}:
+    if category in {"契約更新", "移籍in", "期限付移籍in", "期限付移籍in延長", "期限付移籍out終了"}:
         status = "在籍予定"
     elif category in {"期限付移籍out", "期限付移籍out延長"}:
         status = "期限付き移籍中"
@@ -238,7 +240,7 @@ def _extract_transfer_club(title: str, player_name: str, category: str) -> str:
     text = title.replace(player_name, "").replace("選手", "")
     if category in {"移籍out", "期限付移籍out", "期限付移籍out延長"}:
         match = re.search(r"(.+?)に", text) or re.search(r"(.+?)へ", text)
-    elif category in {"移籍in", "期限付移籍in", "期限付移籍in延長", "復帰"}:
+    elif category in {"移籍in", "期限付移籍in", "期限付移籍in延長", "期限付移籍out終了"}:
         match = re.search(r"(.+?)から", text) or re.search(r"(.+?)より", text)
     else:
         match = None

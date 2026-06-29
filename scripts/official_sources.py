@@ -56,6 +56,7 @@ EVENT_KEYWORDS = {
     "復帰": ["復帰"],
     "退団": ["退団"],
     "引退": ["引退"],
+    "離脱": ["チーム離脱", "離脱"],
     "加入": ["加入", "新加入", "内定"],
 }
 
@@ -214,6 +215,8 @@ def _club_note(category: str, club: str) -> str:
         return f"{club}への期限付き移籍期間を延長"
     if category == "期限付移籍out終了":
         return f"{club}への期限付き移籍より復帰" if club else "期限付き移籍out終了"
+    if category == "離脱":
+        return "チーム離脱"
     return "公式サイト確認"
 
 
@@ -231,6 +234,8 @@ def _build_event(title: str, article_text: str, category: str, url: str, known_n
         status = "期限付き移籍中"
     elif category == "移籍out":
         status = "退団予定"
+    elif category == "離脱":
+        status = "離脱"
     else:
         status = category
     return OfficialEvent(player_name, movement, announced_on, category, club, status, url, _club_note(category, club))
@@ -256,7 +261,7 @@ def _extract_known_name(text: str, known_names: set[str]) -> str | None:
 
 
 def _extract_name(text: str) -> str:
-    cleaned = re.sub(r"(選手|契約|更新|加入|復帰|退団|引退|期限付き|完全移籍|のお知らせ|について).*$", "", text).strip(" 　｜|-/")
+    cleaned = re.sub(r"(選手|契約|更新|加入|復帰|退団|引退|離脱|期限付き|完全移籍|のお知らせ|について).*$", "", text).strip(" 　｜|-/")
     match = PLAYER_NAME_PATTERN.search(cleaned)
     return match.group(1).strip() if match else ""
 

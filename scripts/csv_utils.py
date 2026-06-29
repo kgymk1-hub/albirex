@@ -24,6 +24,7 @@ ALLOWED_EVENT_CATEGORIES = {
     "期限付移籍out終了",
     "契約満了",
     "引退",
+    "離脱",
     "未発表",
 }
 

@@ -15,6 +15,7 @@ EVENTS_HEADER = ["選手名", "動向", "発表日", "区分", "移籍先元", "
 ALLOWED_EVENT_CATEGORIES = {
     "契約更新",
     "移籍in",
+    "新加入",
     "移籍out",
     "期限付移籍in",
     "期限付移籍out",
@@ -24,6 +25,7 @@ ALLOWED_EVENT_CATEGORIES = {
     "期限付移籍out終了",
     "契約満了",
     "引退",
+    "離脱",
     "未発表",
 }
 
